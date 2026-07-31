@@ -112,6 +112,19 @@ ljung_box <- function(fitit, lags=NULL, nfixed=0) {
 # Can be used on non-arima models by specifying plot.Arima(fitted_object)
 plot.Arima <- function(fitit, lags=NULL, nfixed=0, S=NULL, parameters=NULL, main=NULL, extended=TRUE, ...) {
 
+  if (class(fitit) == 'list') {
+    stop('Use $fit object from sarima() or sarima2(), not the list object.')
+  }
+  
+  # casdex: test values: remove
+  #fitit <- lm1
+  #lags <- NULL
+  #nfixed <- 0
+  #S <- NULL
+  #parameters <- NULL
+  #main <- NULL
+  #extended <- TRUE
+
   # Residuals and number of observations
   rs <- residuals(fitit)
   num <- sum(!is.na(rs))
@@ -150,7 +163,8 @@ plot.Arima <- function(fitit, lags=NULL, nfixed=0, S=NULL, parameters=NULL, main
     )
     ppq <- parameters - nfixed
     num <- length(residuals(fitit))
-    stdres <- residuals(fitit) / fitit$sigma2
+    #stdres <- residuals(fitit) / fitit$sigma2
+    stdres <- residuals(fitit) / sigma(fitit)^2
 
   }
 
@@ -179,11 +193,13 @@ plot.Arima <- function(fitit, lags=NULL, nfixed=0, S=NULL, parameters=NULL, main
 
   # 1. Residuals time series plot
   tsplot(stdres, main = "Standardized Residuals", ylab = "", ...)
+  #tsplot(stdres, main = "Standardized Residuals", ylab = "")
   title(main, adj = 0)
   title('plot.Arima', adj=1)
 
   # 2. ACF plot
   acf1(rs, alag, main = "ACF of Residuals", ...)
+  #acf1(rs, alag, main = "ACF of Residuals")
   
   # 3. Q-Q plot
   u = qqnorm(stdres, plot.it = FALSE)
@@ -196,6 +212,7 @@ plot.Arima <- function(fitit, lags=NULL, nfixed=0, S=NULL, parameters=NULL, main
     main = "Normal Q-Q Plot of Std Residuals", 
     ...
   )
+  #tsplot(u$x, u$y, type = "p", ylim = c(lwr, upr))
   # Q-Q plot diagonal line
   sR <- !is.na(stdres)
   ord <- order(stdres[sR])
@@ -222,7 +239,8 @@ plot.Arima <- function(fitit, lags=NULL, nfixed=0, S=NULL, parameters=NULL, main
   
   # 4. PACF plot
   if (extended) {
-    acf1(rs, alag, main = "PACF of Residuals", pacf = TRUE, ...) 
+    acf1(rs, alag, main = "PACF of Residuals", pacf = TRUE, ...)
+    #acf1(rs, alag, main = "PACF of Residuals", pacf = TRUE)
   }
   
   # 5. Histogram
@@ -257,6 +275,7 @@ plot.Arima <- function(fitit, lags=NULL, nfixed=0, S=NULL, parameters=NULL, main
     main = "p values for Ljung-Box statistic", 
     ...
   )
+  #tsplot((ppq + 1):nlag, pval[(ppq + 1):nlag], type = "p", ylim = c(-0.14, 1))
   abline(h = 0.05, lty = 2, col = 4)
   
   on.exit(par(old.par))
